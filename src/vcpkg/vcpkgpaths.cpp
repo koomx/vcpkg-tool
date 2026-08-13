@@ -442,6 +442,7 @@ namespace
             Checks::msg_exit_with_error(VCPKG_LINE_INFO, msgErrorMissingVcpkgRoot);
         }
 
+        vcpkg::set_registry_root(ret.c_str());
         return ret;
     }
 

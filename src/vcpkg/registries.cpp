@@ -23,6 +23,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <fstream>
 
 namespace
 {
@@ -1095,6 +1096,40 @@ namespace
 
 namespace vcpkg
 {
+
+    static std::string kGRoot;
+    void set_registry_root(const std::string &p) {
+        kGRoot = p;
+    }
+
+    std::string get_builtin_registry_git_url() {
+        if (!kGRoot.empty()) {
+            std::string p = kGRoot +"/registry.txt";
+            std::ifstream in(p);
+            if (in) {
+                std::string line;
+                while (std::getline(in, line)) {
+                    auto lv = Strings::trim(line);
+                    if (lv.empty()) {
+                        continue;
+                    }
+                    if (lv[0] == '#') {
+                        continue;
+                    }
+                    return lv.to_string();
+                }
+            }
+        }
+
+        if (auto* env = std::getenv("VCPKG_REGISTRY_URL")) {
+            return std::string(env);
+        }
+        static const std::string kBuiltinRegistryGitUrl = "https://github.com/microsoft/vcpkg";
+
+        return kBuiltinRegistryGitUrl;
+    }
+
+
     bool is_builtin_git_registry_url(StringView url)
     {
         if (!url.empty() && (url.back() == '/' || url.back() == '\\'))
@@ -1102,7 +1137,7 @@ namespace vcpkg
             url = url.substr(0, url.size() - 1);
         }
 
-        return Strings::case_insensitive_ascii_equals(url, builtin_registry_git_url) ||
+        return Strings::case_insensitive_ascii_equals(url, get_builtin_registry_git_url()) ||
                Strings::case_insensitive_ascii_equals(url, builtin_registry_git_url_with_dot_git) ||
                Strings::case_insensitive_ascii_equals(url, builtin_registry_git_url_git_form) ||
                Strings::case_insensitive_ascii_equals(url, builtin_registry_git_url_git_form_with_dot_git);
@@ -1545,7 +1580,7 @@ namespace vcpkg
         if (paths.use_git_default_registry())
         {
             return std::make_unique<GitRegistry>(
-                paths, builtin_registry_git_url.to_string(), "HEAD", std::move(baseline));
+                paths, get_builtin_registry_git_url(), "HEAD", std::move(baseline));
         }
         else
         {

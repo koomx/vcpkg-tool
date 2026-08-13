@@ -23,7 +23,9 @@
 
 namespace vcpkg
 {
-    inline constexpr StringLiteral builtin_registry_git_url = "https://github.com/microsoft/vcpkg";
+    void set_registry_root(const std::string &p);
+
+    std::string get_builtin_registry_git_url();
 
     bool is_builtin_git_registry_url(StringView url);
 

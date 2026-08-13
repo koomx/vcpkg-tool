@@ -186,7 +186,8 @@ namespace vcpkg
             {
                 RegistryConfig default_registry;
                 default_registry.kind.emplace(JsonIdGit);
-                default_registry.repo.emplace(builtin_registry_git_url.data(), builtin_registry_git_url.size());
+                auto url = get_builtin_registry_git_url();
+                default_registry.repo.emplace(url.data(), url.size());
                 default_registry.baseline.emplace(*current_builtin_sha);
                 configuration.default_reg.emplace(std::move(default_registry));
             }
