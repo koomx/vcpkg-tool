@@ -166,28 +166,43 @@ jobs:
           else
             echo "base=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
           fi
+      - uses: actions/checkout@v4
+        with:
+          repository: curl/curl
+          ref: curl-8_11_1
+          path: curl-src
       - uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: x64
-      - name: Use runner C:\vcpkg
-        shell: cmd
-        run: |
-          echo VCPKG_ROOT=C:\vcpkg>> %GITHUB_ENV%
-          echo C:\vcpkg>> %GITHUB_PATH%
       - name: Install ninja
         shell: pwsh
         run: choco install ninja -y
+      - name: Build libcurl (Schannel, no vcpkg)
+        shell: cmd
+        run: |
+          set "VCPKG_ROOT="
+          cmake -G Ninja -DCMAKE_BUILD_TYPE=Release ^
+            -DCMAKE_MAKE_PROGRAM=ninja ^
+            -DBUILD_SHARED_LIBS=OFF ^
+            -DBUILD_CURL_EXE=OFF ^
+            -DBUILD_TESTING=OFF ^
+            -DCURL_USE_SCHANNEL=ON ^
+            -DCURL_USE_LIBPSL=OFF ^
+            -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded ^
+            -DCMAKE_INSTALL_PREFIX=%GITHUB_WORKSPACE%\curl-prefix ^
+            -B curl-build -S curl-src
+          IF %ERRORLEVEL% NEQ 0 exit /B %ERRORLEVEL%
+          cmake --build curl-build -j
+          IF %ERRORLEVEL% NEQ 0 exit /B %ERRORLEVEL%
+          cmake --install curl-build
+          IF %ERRORLEVEL% NEQ 0 exit /B %ERRORLEVEL%
       - name: Configure and Build (MSVC)
         shell: cmd
         run: |
-          set CC=cl
-          set CXX=cl
-          where vcpkg
-          vcpkg version
+          set "VCPKG_ROOT="
           cmake -G Ninja -DCMAKE_BUILD_TYPE=Release ^
             -DCMAKE_MAKE_PROGRAM=ninja ^
-            -DCMAKE_TOOLCHAIN_FILE=C:\vcpkg\scripts\buildsystems\vcpkg.cmake ^
-            -DVCPKG_TARGET_TRIPLET=x64-windows-static ^
+            -DCMAKE_PREFIX_PATH=%GITHUB_WORKSPACE%\curl-prefix ^
             -DVCPKG_BASE_VERSION=${{ steps.ver.outputs.base }} ^
             -DVCPKG_VERSION=${{ github.sha }} ^
             -DVCPKG_EMBED_GIT_SHA=ON ^
@@ -219,28 +234,43 @@ jobs:
           else
             echo "base=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
           fi
+      - uses: actions/checkout@v4
+        with:
+          repository: curl/curl
+          ref: curl-8_11_1
+          path: curl-src
       - uses: ilammy/msvc-dev-cmd@v1
         with:
-          arch: arm64
-      - name: Use runner C:\vcpkg
-        shell: cmd
-        run: |
-          echo VCPKG_ROOT=C:\vcpkg>> %GITHUB_ENV%
-          echo C:\vcpkg>> %GITHUB_PATH%
+          arch: amd64_arm64
       - name: Install ninja
         shell: pwsh
         run: choco install ninja -y
+      - name: Build libcurl (Schannel, no vcpkg)
+        shell: cmd
+        run: |
+          set "VCPKG_ROOT="
+          cmake -G Ninja -DCMAKE_BUILD_TYPE=Release ^
+            -DCMAKE_MAKE_PROGRAM=ninja ^
+            -DBUILD_SHARED_LIBS=OFF ^
+            -DBUILD_CURL_EXE=OFF ^
+            -DBUILD_TESTING=OFF ^
+            -DCURL_USE_SCHANNEL=ON ^
+            -DCURL_USE_LIBPSL=OFF ^
+            -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded ^
+            -DCMAKE_INSTALL_PREFIX=%GITHUB_WORKSPACE%\curl-prefix ^
+            -B curl-build -S curl-src
+          IF %ERRORLEVEL% NEQ 0 exit /B %ERRORLEVEL%
+          cmake --build curl-build -j
+          IF %ERRORLEVEL% NEQ 0 exit /B %ERRORLEVEL%
+          cmake --install curl-build
+          IF %ERRORLEVEL% NEQ 0 exit /B %ERRORLEVEL%
       - name: Configure and Build (MSVC)
         shell: cmd
         run: |
-          set CC=cl
-          set CXX=cl
-          where vcpkg
-          vcpkg version
+          set "VCPKG_ROOT="
           cmake -G Ninja -DCMAKE_BUILD_TYPE=Release ^
             -DCMAKE_MAKE_PROGRAM=ninja ^
-            -DCMAKE_TOOLCHAIN_FILE=C:\vcpkg\scripts\buildsystems\vcpkg.cmake ^
-            -DVCPKG_TARGET_TRIPLET=arm64-windows-static ^
+            -DCMAKE_PREFIX_PATH=%GITHUB_WORKSPACE%\curl-prefix ^
             -DVCPKG_BASE_VERSION=${{ steps.ver.outputs.base }} ^
             -DVCPKG_VERSION=${{ github.sha }} ^
             -DVCPKG_EMBED_GIT_SHA=ON ^
