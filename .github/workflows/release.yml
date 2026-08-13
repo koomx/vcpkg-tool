@@ -155,8 +155,6 @@ jobs:
 
   vcpkg-exe:
     runs-on: windows-latest
-    env:
-      VCPKG_ROOT: ${{ github.workspace }}\vcpkg-root
     steps:
       - uses: actions/checkout@v4
       - name: Resolve VCPKG_BASE_VERSION
@@ -187,16 +185,17 @@ jobs:
       - name: Bootstrap vcpkg
         shell: cmd
         run: |
-          call "%VCPKG_ROOT%\bootstrap-vcpkg.bat" -disableMetrics
+          call "%GITHUB_WORKSPACE%\vcpkg-root\bootstrap-vcpkg.bat" -disableMetrics
           IF %ERRORLEVEL% NEQ 0 exit /B %ERRORLEVEL%
       - name: Configure and Build (MSVC)
         shell: cmd
         run: |
+          set "VCPKG_ROOT=%GITHUB_WORKSPACE%\vcpkg-root"
           cl /Bv
           set CC=cl
           set CXX=cl
           cmake -G Ninja -DCMAKE_BUILD_TYPE=Release ^
-            -DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake ^
+            -DCMAKE_TOOLCHAIN_FILE=%GITHUB_WORKSPACE%\vcpkg-root\scripts\buildsystems\vcpkg.cmake ^
             -DVCPKG_TARGET_TRIPLET=x64-windows-static ^
             -DVCPKG_BASE_VERSION=${{ steps.ver.outputs.base }} ^
             -DVCPKG_VERSION=${{ github.sha }} ^
@@ -218,8 +217,6 @@ jobs:
 
   vcpkg-arm64-exe:
     runs-on: windows-latest
-    env:
-      VCPKG_ROOT: ${{ github.workspace }}\vcpkg-root
     steps:
       - uses: actions/checkout@v4
       - name: Resolve VCPKG_BASE_VERSION
@@ -250,16 +247,17 @@ jobs:
       - name: Bootstrap vcpkg
         shell: cmd
         run: |
-          call "%VCPKG_ROOT%\bootstrap-vcpkg.bat" -disableMetrics
+          call "%GITHUB_WORKSPACE%\vcpkg-root\bootstrap-vcpkg.bat" -disableMetrics
           IF %ERRORLEVEL% NEQ 0 exit /B %ERRORLEVEL%
       - name: Configure and Build (MSVC)
         shell: cmd
         run: |
+          set "VCPKG_ROOT=%GITHUB_WORKSPACE%\vcpkg-root"
           cl /Bv
           set CC=cl
           set CXX=cl
           cmake -G Ninja -DCMAKE_BUILD_TYPE=Release ^
-            -DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake ^
+            -DCMAKE_TOOLCHAIN_FILE=%GITHUB_WORKSPACE%\vcpkg-root\scripts\buildsystems\vcpkg.cmake ^
             -DVCPKG_TARGET_TRIPLET=arm64-windows-static ^
             -DVCPKG_BASE_VERSION=${{ steps.ver.outputs.base }} ^
             -DVCPKG_VERSION=${{ github.sha }} ^
