@@ -179,6 +179,11 @@ jobs:
       - uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: x64
+      - name: Override VS VCPKG_ROOT/PATH
+        shell: cmd
+        run: |
+          echo VCPKG_ROOT=%GITHUB_WORKSPACE%\vcpkg-root>> %GITHUB_ENV%
+          echo %GITHUB_WORKSPACE%\vcpkg-root>> %GITHUB_PATH%
       - name: Install ninja
         shell: pwsh
         run: choco install ninja -y
@@ -187,13 +192,15 @@ jobs:
         run: |
           call "%GITHUB_WORKSPACE%\vcpkg-root\bootstrap-vcpkg.bat" -disableMetrics
           IF %ERRORLEVEL% NEQ 0 exit /B %ERRORLEVEL%
+          where vcpkg
+          "%GITHUB_WORKSPACE%\vcpkg-root\vcpkg.exe" version
       - name: Configure and Build (MSVC)
         shell: cmd
         run: |
-          set "VCPKG_ROOT=%GITHUB_WORKSPACE%\vcpkg-root"
-          cl /Bv
           set CC=cl
           set CXX=cl
+          where vcpkg
+          "%GITHUB_WORKSPACE%\vcpkg-root\vcpkg.exe" version
           cmake -G Ninja -DCMAKE_BUILD_TYPE=Release ^
             -DCMAKE_TOOLCHAIN_FILE=%GITHUB_WORKSPACE%\vcpkg-root\scripts\buildsystems\vcpkg.cmake ^
             -DVCPKG_TARGET_TRIPLET=x64-windows-static ^
@@ -241,6 +248,11 @@ jobs:
       - uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: arm64
+      - name: Override VS VCPKG_ROOT/PATH
+        shell: cmd
+        run: |
+          echo VCPKG_ROOT=%GITHUB_WORKSPACE%\vcpkg-root>> %GITHUB_ENV%
+          echo %GITHUB_WORKSPACE%\vcpkg-root>> %GITHUB_PATH%
       - name: Install ninja
         shell: pwsh
         run: choco install ninja -y
@@ -249,13 +261,15 @@ jobs:
         run: |
           call "%GITHUB_WORKSPACE%\vcpkg-root\bootstrap-vcpkg.bat" -disableMetrics
           IF %ERRORLEVEL% NEQ 0 exit /B %ERRORLEVEL%
+          where vcpkg
+          "%GITHUB_WORKSPACE%\vcpkg-root\vcpkg.exe" version
       - name: Configure and Build (MSVC)
         shell: cmd
         run: |
-          set "VCPKG_ROOT=%GITHUB_WORKSPACE%\vcpkg-root"
-          cl /Bv
           set CC=cl
           set CXX=cl
+          where vcpkg
+          "%GITHUB_WORKSPACE%\vcpkg-root\vcpkg.exe" version
           cmake -G Ninja -DCMAKE_BUILD_TYPE=Release ^
             -DCMAKE_TOOLCHAIN_FILE=%GITHUB_WORKSPACE%\vcpkg-root\scripts\buildsystems\vcpkg.cmake ^
             -DVCPKG_TARGET_TRIPLET=arm64-windows-static ^
